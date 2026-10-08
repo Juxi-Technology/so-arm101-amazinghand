@@ -1,137 +1,139 @@
-# SO-ARM101 + AmazingHand 使用教程
+# SO-ARM101 + AmazingHand Tutorial
 
-本教程面向复现 **SO-ARM101 从动臂 + AmazingHand 灵巧手** 的遥操作、数据采集与训练全流程，基于 LeRobot（本仓库定制版）。
+> 🌐 **English** | [简体中文 (Chinese)](https://wiki.juxitech.com/zh-hant/tutorials/robot-arms/so-arm-amazinghand/)
 
-教程按**阶段**组织，每个阶段独立成目录，内部按操作系统拆分 `win.md`（Windows）与 `linux.md`（Linux）两个文档。请根据你的操作系统选择对应文档阅读。
+This tutorial covers the complete workflow for reproducing teleoperation, data collection, and training on the **SO-ARM101 follower arm + AmazingHand dexterous hand**, based on LeRobot (the customized version in this repository).
+
+The tutorial is organized by **stage**. Each stage has its own directory, which contains two documents split by operating system: `win.md` (Windows) and `linux.md` (Linux). Read the document that matches your operating system.
 
 ---
 
-## 硬件与软件概览
+## Hardware and software overview
 
-| 设备 | 串口（示例，需替换） | 舵机型号 | 说明 |
+| Device | Serial port (example, needs replacing) | Servo model | Description |
 |---|---|---|---|
-| 主动臂（Leader） | `COM54` / `/dev/ttyACM1` | 混合型号 | 遥操作输入，保留 6 号夹爪 |
-| 从动臂（Follower） | `COM58` / `/dev/ttyACM0` | `sts3215-C018`（1-5 号） | 执行端，拆除 6 号夹爪 |
-| AmazingHand 灵巧手 | `COM11` / `/dev/ttyACM2` | `scs0009`（8 个，ID 1-8） | 从动臂末端，独立串口 |
+| Leader arm | `COM54` / `/dev/ttyACM1` | Mixed models | Teleoperation input; gripper #6 retained |
+| Follower arm | `COM58` / `/dev/ttyACM0` | `sts3215-C018` (No. 1-5) | Execution end; gripper #6 removed |
+| AmazingHand dexterous hand | `COM11` / `/dev/ttyACM2` | `scs0009` (8 servos, IDs 1-8) | At the end of the follower arm; dedicated serial port |
 
-> **⚠️ 串口名因机器而异**：上表为示例。每台电脑的 COM 号/设备路径都不同，务必用 `lerobot-find-port` 确认本机实际值，并替换所有命令中的占位参数。
+> **⚠️ Serial port names vary by machine:** The table above is only an example. COM numbers and device paths differ from computer to computer. Always use `lerobot-find-port` to confirm the actual values on your machine, and replace the placeholder parameters in every command.
 
-> 三个设备必须**各自独立串口、独立供电**。SCS0009（协议 1）与 STS3215（协议 0）不兼容于同一总线。
+> The three devices must each have **an independent serial port and an independent power supply**. SCS0009 (protocol 1) and STS3215 (protocol 0) are not compatible on the same bus.
 
 ---
 
-## 教程目录结构
+## Tutorial directory structure
 
 ```
 tutorials/
-├── README.md                          # 本文件（总览）
-├── 01-environment/                    # 阶段一：环境搭建
-│   ├── win.md                         #   Windows 环境搭建
-│   └── linux.md                       #   Linux 环境搭建
-├── 02-calibration/                    # 阶段二：标定
+├── README.md                          # This file (overview)
+├── 01-environment/                    # Stage 1: Environment setup
+│   ├── win.md                         #   Windows environment setup
+│   └── linux.md                       #   Linux environment setup
+├── 02-calibration/                    # Stage 2: Calibration
 │   ├── win.md
 │   └── linux.md
-├── 03-teleoperation/                  # 阶段三：遥操作
+├── 03-teleoperation/                  # Stage 3: Teleoperation
 │   ├── win.md
 │   └── linux.md
-├── 04-data-collection/                # 阶段四：数据采集
+├── 04-data-collection/                # Stage 4: Data collection
 │   ├── win.md
 │   └── linux.md
-├── 05-training/                       # 阶段五：模型训练
+├── 05-training/                       # Stage 5: Model training
 │   ├── win.md
 │   └── linux.md
-└── 06-deployment/                     # 阶段六：部署与评估
+└── 06-deployment/                     # Stage 6: Deployment and evaluation
     ├── win.md
     └── linux.md
 ```
 
 ---
 
-## 推荐阅读路径
+## Recommended reading path
 
-| 步骤 | 阶段 | Windows | Linux |
+| Step | Stage | Windows | Linux |
 |---|---|---|---|
-| 1 | 环境搭建 | [01-environment/win.md](01-environment/win.md) | [01-environment/linux.md](01-environment/linux.md) |
-| 2 | 标定 | [02-calibration/win.md](02-calibration/win.md) | [02-calibration/linux.md](02-calibration/linux.md) |
-| 3 | 遥操作 | [03-teleoperation/win.md](03-teleoperation/win.md) | [03-teleoperation/linux.md](03-teleoperation/linux.md) |
-| 4 | 数据采集 | [04-data-collection/win.md](04-data-collection/win.md) | [04-data-collection/linux.md](04-data-collection/linux.md) |
-| 5 | 模型训练 | [05-training/win.md](05-training/win.md) | [05-training/linux.md](05-training/linux.md) |
-| 6 | 部署与评估 | [06-deployment/win.md](06-deployment/win.md) | [06-deployment/linux.md](06-deployment/linux.md) |
+| 1 | Environment setup | [01-environment/win.md](01-environment/win.md) | [01-environment/linux.md](01-environment/linux.md) |
+| 2 | Calibration | [02-calibration/win.md](02-calibration/win.md) | [02-calibration/linux.md](02-calibration/linux.md) |
+| 3 | Teleoperation | [03-teleoperation/win.md](03-teleoperation/win.md) | [03-teleoperation/linux.md](03-teleoperation/linux.md) |
+| 4 | Data collection | [04-data-collection/win.md](04-data-collection/win.md) | [04-data-collection/linux.md](04-data-collection/linux.md) |
+| 5 | Model training | [05-training/win.md](05-training/win.md) | [05-training/linux.md](05-training/linux.md) |
+| 6 | Deployment and evaluation | [06-deployment/win.md](06-deployment/win.md) | [06-deployment/linux.md](06-deployment/linux.md) |
 
 ---
 
-## 各阶段核心差异速查
+## Key differences by stage at a glance
 
-| 方面 | Windows | Linux |
+| Aspect | Windows | Linux |
 |---|---|---|
-| Python 环境 | Miniconda + `conda create -n lerobot python=3.12` | Miniforge + 同样命令 |
-| 串口名 | `COM54` / `COM58` / `COM11`（示例） | `/dev/ttyACM0/1/2`（示例） |
-| 串口权限 | 无需特殊配置 | 需 `sudo chmod 666 /dev/ttyACM*` 或 udev 规则 |
-| 命令调用 | conda 激活后 `lerobot-xxx` | conda 激活后 `lerobot-xxx` |
-| CUDA 训练 | 需手动装 CUDA torch | 官方支持，解析顺畅 |
+| Python environment | Miniconda + `conda create -n lerobot python=3.12` | Miniforge + the same command |
+| Serial port names | `COM54` / `COM58` / `COM11` (examples) | `/dev/ttyACM0/1/2` (examples) |
+| Serial port permissions | No special configuration needed | Requires `sudo chmod 666 /dev/ttyACM*` or a udev rule |
+| Command invocation | `lerobot-xxx` after activating conda | `lerobot-xxx` after activating conda |
+| CUDA training | CUDA torch must be installed manually | Officially supported; resolves smoothly |
 
 ---
 
-## 通用注意事项
+## General notes
 
-1. **先跑通阶段一，再进入后续阶段**——环境是后续所有命令的前提。
-2. **每台电脑必须重新标定**：尤其是手角度（`lerobot-calibrate-amazing-hand`），config 里的角度是 AmazingHand 官方通用默认，仅作后备；`hand_angles.json` 存在时优先加载本机实测值。
-3. **标定文件位置**：`~/.cache/huggingface/lerobot/calibration/`，换机器需迁移或重标定。
-4. **首次遥操作务必验证方向**：夹爪张开 ↔ 手张开、捏合 ↔ 手闭合。
-5. 每个阶段的 `win.md` / `linux.md` 内均包含**该平台特有的注意事项**，请完整阅读。
+1. **Get Stage 1 working before moving on to later stages** — the environment is the prerequisite for every command that follows.
+2. **Every computer must be recalibrated**: especially the hand angles (`lerobot-calibrate-amazing-hand`). The angles in the config are AmazingHand's official generic defaults and serve only as a fallback; when `hand_angles.json` exists, the locally measured values are loaded preferentially.
+3. **Calibration file location**: `~/.cache/huggingface/lerobot/calibration/` — when switching machines, migrate it or recalibrate.
+4. **Always verify directions on the first teleoperation run**: gripper open ↔ hand open, pinch ↔ hand closed.
+5. Each stage's `win.md` / `linux.md` contains **platform-specific notes** — please read them in full.
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-各阶段文档内附该平台的故障排查表。以下是**跨阶段常见问题**汇总：
+Each stage document includes a troubleshooting table for its platform. The following is a summary of **cross-stage common issues**:
 
-| 现象 | 原因 | 解决 |
+| Symptom | Cause | Solution |
 |---|---|---|
-| `FeetechMotorsBus motor check failed` | 总线无响应，或舵机 ID 与配置不符 | 运行 `python diagnose_feetech_bus.py <串口>` 定位（扫描全部 ID × 全部波特率） |
-| `uv run` 报 32/64 位 / numpy 导入错误 | 解释器位数不对 | 用 `uv venv --python <64位解释器绝对路径>` 重建 |
-| `uv` 报跨盘 `os error 17` | 缓存跨磁盘 | 设置 `UV_CACHE_DIR` / `TMPDIR` 到同一磁盘 |
-| 主动臂标定报 2307 型号错误 | 臂总线被污染 | 确认未同时连接手总线；本项目手走 rustypot 已规避 |
-| 手开合方向反 | 角度语义反 | 重标手，或交换 `hand_angles.json` 的 open / close |
-| 手张合比例不匹配 | 夹爪映射方向错 | 实测夹爪开/合对应的 `gripper.pos`，调整 `gripper_open_pos` / `gripper_close_pos` |
-| 手驱动报 `Operation timed out` | 串口忙碌 / 时序 | 确认手串口未被占用，重试 |
-| 标定手无 GUI | 使用了错误命令 | 必须用 `lerobot-calibrate-amazing-hand`（不是 `lerobot-calibrate`） |
-| `--display_data=true` 报 rerun 错误 | 可视化依赖缺失 | 去掉该参数，或安装 `lerobot[viz]` + Rerun Viewer |
-| 录制一启动就崩溃 | 语音播报（TTS）阻塞控制循环 | 加 `--play_sounds=false` |
-| 相机打不开 / 帧超时 | 索引变化，或摄像头 USB 状态卡死 | `lerobot-find-cameras` 确认索引；拔插摄像头重置 |
-| 双摄同时打开失败 | 打开顺序问题 | 让索引较大的相机排在 cameras 配置前面 |
+| `FeetechMotorsBus motor check failed` | Bus not responding, or servo IDs don't match the configuration | Run `python diagnose_feetech_bus.py <serial port>` to locate the problem (scans all IDs × all baud rates) |
+| `uv run` reports 32/64-bit / numpy import errors | Wrong interpreter bitness | Recreate with `uv venv --python <absolute path to a 64-bit interpreter>` |
+| `uv` reports a cross-drive `os error 17` | Cache spans multiple disks | Set `UV_CACHE_DIR` / `TMPDIR` to the same disk |
+| Leader arm calibration reports a model 2307 error | Arm bus polluted | Confirm the hand bus is not connected at the same time; this project avoids it by running the hand over rustypot |
+| Hand opens/closes in the wrong direction | Angle semantics reversed | Recalibrate the hand, or swap open / close in `hand_angles.json` |
+| Hand open/close ratio doesn't match | Gripper mapping direction is wrong | Measure the `gripper.pos` for gripper open/closed, then adjust `gripper_open_pos` / `gripper_close_pos` |
+| Hand driver reports `Operation timed out` | Serial port busy / timing | Confirm the hand's serial port is not occupied, then retry |
+| No GUI when calibrating the hand | Wrong command used | You must use `lerobot-calibrate-amazing-hand` (not `lerobot-calibrate`) |
+| `--display_data=true` reports a rerun error | Visualization dependency missing | Drop the flag, or install `lerobot[viz]` + Rerun Viewer |
+| Recording crashes as soon as it starts | Voice announcements (TTS) block the control loop | Add `--play_sounds=false` |
+| Camera won't open / frame timeouts | Index changed, or camera USB state stuck | Use `lerobot-find-cameras` to confirm the index; unplug and replug the camera to reset it |
+| Opening two cameras at once fails | Open-order issue | Put the camera with the larger index earlier in the cameras configuration |
 
 ---
 
-## 常见问题（FAQ）
+## Frequently Asked Questions (FAQ)
 
-**Q：为什么灵巧手不用 lerobot 的 `RangeFinderGUI` 标定？**
+**Q: Why doesn't the dexterous hand use lerobot's `RangeFinderGUI` for calibration?**
 
-A：灵巧手走 `rustypot` 独立串口栈（规避 lerobot 双总线互相污染的缺陷），不使用 `FeetechMotorsBus`。因此采用专用的 `lerobot-calibrate-amazing-hand` GUI 标定开合角度。
+A: The dexterous hand runs on its own `rustypot` serial stack (to work around lerobot's dual-bus mutual-pollution flaw) and does not use `FeetechMotorsBus`. It therefore uses the dedicated `lerobot-calibrate-amazing-hand` GUI to calibrate the open/close angles.
 
-**Q：`hand_angles.json` 与 config 里的默认值是什么关系？**
+**Q: What is the relationship between `hand_angles.json` and the default values in the config?**
 
-A：config 中的 `hand_open_angles` / `hand_close_angles` 是**后备默认值**（AmazingHand 官方通用值）；`hand_angles.json` 存在时**优先加载**本机实测值。重新标定手之后无需修改任何代码。
+A: `hand_open_angles` / `hand_close_angles` in the config are **fallback defaults** (AmazingHand's official generic values); when `hand_angles.json` exists, the locally measured values are **loaded preferentially**. After recalibrating the hand, no code changes are needed.
 
-**Q：换一台电脑需要重新标定吗？**
+**Q: Do I need to recalibrate when switching to a different computer?**
 
-A：需要。标定文件位于 `~/.cache/huggingface/lerobot/calibration/`，换机器需迁移该目录，或重新标定。`hand_angles.json` 也在此目录下。
+A: Yes. Calibration files are located in `~/.cache/huggingface/lerobot/calibration/`; when switching machines, migrate that directory or recalibrate. `hand_angles.json` is also in this directory.
 
-**Q：Windows / Linux / macOS 的差异在哪里？**
+**Q: What are the differences between Windows / Linux / macOS?**
 
-A：命令本身相同，差异集中在这几处：
+A: The commands themselves are identical; the differences are concentrated in these places:
 
-| 方面 | Windows | Linux | macOS |
+| Aspect | Windows | Linux | macOS |
 |---|---|---|---|
-| 串口名 | `COMx` | `/dev/ttyACM*` | `/dev/cu.*`（优先用 `cu.` 而非 `tty.`） |
-| 虚拟环境路径 | `.venv\Scripts\` | `.venv/bin/` | `.venv/bin/` |
-| 串口权限 | 无需配置 | 需 `sudo chmod 666 /dev/ttyACM*` | 无需配置 |
+| Serial port names | `COMx` | `/dev/ttyACM*` | `/dev/cu.*` (prefer `cu.` over `tty.`) |
+| Virtual environment path | `.venv\Scripts\` | `.venv/bin/` | `.venv/bin/` |
+| Serial port permissions | No configuration needed | Requires `sudo chmod 666 /dev/ttyACM*` | No configuration needed |
 
-**Q：三个设备必须独立供电吗？**
+**Q: Do the three devices need independent power supplies?**
 
-A：必须。SCS0009（协议 1）与 STS3215（协议 0）不能共用同一条总线；且同进程混用 lerobot 串口栈会互相污染——这也是本项目让手走 rustypot 独立栈的原因。
+A: Yes, they must. SCS0009 (protocol 1) and STS3215 (protocol 0) cannot share the same bus; moreover, mixing lerobot serial stacks in the same process causes mutual pollution — which is exactly why this project runs the hand on an independent rustypot stack.
 
-**Q：训练好的模型在哪里？**
+**Q: Where is the trained model?**
 
-A：部署用 `outputs/train/<任务名>/checkpoints/last/pretrained_model/`（含 `config.json` + 权重），`--policy.path` 必须指向这个目录，不是 checkpoint 根目录。
+A: For deployment, use `outputs/train/<task name>/checkpoints/last/pretrained_model/` (containing `config.json` + weights). `--policy.path` must point to this directory, not the checkpoint root directory.
 

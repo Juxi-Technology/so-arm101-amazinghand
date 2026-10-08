@@ -22,7 +22,7 @@ This project delivers a complete hardware integration and software adaptation fo
 - **All-in-one calibration** — `lerobot-calibrate-amazing-hand` provides a GUI for calibrating hand finger angles and leader gripper direction. Results are saved automatically and loaded at startup — **no code changes required**
 - **Data collection & training** — synchronized dual-camera capture producing LeRobotDataset v3.0 datasets, ready for ACT and other policies
 - **Containerized delivery** — CPU and CUDA Docker images; import and run, no environment setup needed
-- **Complete Chinese documentation** — a six-stage tutorial series, split by Windows / Linux
+- **Complete documentation** — a six-stage tutorial series, split by Windows / Linux (English in this repo; Chinese on the [wiki](https://wiki.juxitech.com/zh-hant/tutorials/robot-arms/so-arm-amazinghand/))
 
 ## Hardware Requirements
 
@@ -49,7 +49,12 @@ See **[tutorials/](tutorials/)** for the full walkthrough, organized by stage an
 | 5. Training | [win](tutorials/05-training/win.md) | [linux](tutorials/05-training/linux.md) |
 | 6. Deployment & evaluation | [win](tutorials/06-deployment/win.md) | [linux](tutorials/06-deployment/linux.md) |
 
-> The tutorial documents are currently in Chinese.
+> 📖 **Documentation languages**
+>
+> | Language | Where |
+> |---|---|
+> | **English** | This repository — [`tutorials/`](tutorials/) |
+> | **简体中文** | [wiki.juxitech.com](https://wiki.juxitech.com/zh-hant/tutorials/robot-arms/so-arm-amazinghand/) |
 
 **Environment setup (summary)**:
 
@@ -102,7 +107,7 @@ See **[docker/README_DEPLOY.md](docker/README_DEPLOY.md)** for serial / camera /
 | `src/lerobot/scripts/lerobot_calibrate_amazing_hand.py` | **New** — all-in-one hand calibration GUI |
 | `src/lerobot/robots/so_follower/so_follower.py` | Added retries to bus writes for resilience against transient packet loss |
 | `pyproject.toml` | Added the `amazinghand` extra |
-| `tutorials/` | **New** — six-stage Chinese tutorial series |
+| `tutorials/` | **New** — six-stage tutorial series (English) |
 | `docker/Dockerfile.amazinghand.*` | **New** — CPU / CUDA images |
 
 All other directories (`policies/`, `datasets/`, `envs/`, etc.) are unchanged from upstream LeRobot.

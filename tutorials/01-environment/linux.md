@@ -1,12 +1,12 @@
-# 阶段一：环境搭建（Linux）
+# Stage 1: Environment Setup (Linux)
 
-使用 **Miniforge** 创建独立 Python 环境，安装 LeRobot 及 AmazingHand 支持。本页按**严格顺序**执行，每个代码块可整体复制。
+Use **Miniforge** to create an isolated Python environment and install LeRobot with AmazingHand support. Follow this page in **strict order**; each code block can be copied as a whole.
 
-> 环境版本：Python 3.12 · PyTorch ≥ 2.10 · LeRobot 0.6.2（本仓库定制版）· 推荐 Ubuntu 20.04/22.04
+> Environment versions: Python 3.12 · PyTorch ≥ 2.10 · LeRobot 0.6.2 (the customized version in this repository) · Ubuntu 20.04/22.04 recommended
 
 ---
 
-## 步骤 1：安装 Miniforge
+## Step 1: Install Miniforge
 
 ```bash
 wget "https://mirrors.tuna.tsinghua.edu.cn/github-release/conda-forge/miniforge/LatestRelease/Miniforge3-$(uname)-$(uname -m).sh"
@@ -22,11 +22,11 @@ source ~/.bashrc
 conda --version
 ```
 
-> 官方地址（海外网络）：`https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh`
+> Official URL (for overseas networks): `https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh`
 
 ---
 
-## 步骤 2：配置 conda 国内源（中国大陆网络）
+## Step 2: Configure conda mirrors (China mainland networks)
 
 ```bash
 conda config --remove-key channels
@@ -37,13 +37,13 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/m
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 ```
 
-> `pkgs/free` 已下线（404），不要添加。网络不限可跳过本步骤。
+> `pkgs/free` has been decommissioned (404); do not add it. If your network is unrestricted, you can skip this step.
 
 ---
 
-## 步骤 3：安装编译工具（新系统必需）
+## Step 3: Install build tools (required on a fresh system)
 
-新装的 Ubuntu 可能缺 `gcc` 等编译工具，安装 `evdev` 等包时需要：
+A freshly installed Ubuntu may lack build tools such as `gcc`, which are needed when installing packages such as `evdev`:
 
 ```bash
 sudo apt update
@@ -52,7 +52,7 @@ sudo apt install -y build-essential
 
 ---
 
-## 步骤 4：创建虚拟环境
+## Step 4: Create the virtual environment
 
 ```bash
 conda create -y -n lerobot python=3.12
@@ -64,13 +64,13 @@ python --version
 python -c "import struct; print(struct.calcsize('P')*8, 'bit')"
 ```
 
-> 预期 `Python 3.12.x` + `64 bit`。
+> Expected: `Python 3.12.x` + `64 bit`.
 
 ---
 
-## 步骤 5：安装 ffmpeg（视频解码必需）
+## Step 5: Install ffmpeg (required for video decoding)
 
-LeRobot 录制/回放视频数据依赖 ffmpeg：
+LeRobot depends on ffmpeg to record/replay video data:
 
 ```bash
 conda install ffmpeg -c conda-forge -y
@@ -78,29 +78,29 @@ conda install ffmpeg -c conda-forge -y
 
 ---
 
-## 步骤 6：安装项目依赖
+## Step 6: Install project dependencies
 
 ```bash
 cd ~/so-arm101-amazinghand
 pip install -e ".[amazinghand]"
 ```
 
-`amazinghand` 包含：`feetech-servo-sdk`（臂电机）、`rustypot`（手电机）、`pygame`（标定 GUI）、`pyserial`（串口）。
+`amazinghand` includes: `feetech-servo-sdk` (arm motors), `rustypot` (hand motors), `pygame` (calibration GUI), `pyserial` (serial port).
 
-> pip 慢时先配置国内源：
+> If pip is slow, configure a China mainland mirror first:
 > ```bash
 > pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 > ```
 
 ---
 
-## 步骤 7：配置串口权限
+## Step 7: Configure serial port permissions
 
 ```bash
 sudo chmod 666 /dev/ttyACM*
 ```
 
-> 永久方案（udev 规则，针对 CP210x 芯片，VID `10c4`）：
+> Permanent solution (udev rule, for the CP210x chip, VID `10c4`):
 > ```bash
 > sudo tee /etc/udev/rules.d/99-servo.rules << 'EOF'
 > SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0666", GROUP="dialout"
@@ -110,38 +110,38 @@ sudo chmod 666 /dev/ttyACM*
 
 ---
 
-## 步骤 8：验证环境
+## Step 8: Verify the environment
 
 ```bash
 python -c "import scservo_sdk, rustypot, pygame, serial, lerobot; print('all OK')"
 lerobot-calibrate-amazing-hand --help
 ```
 
-> 应显示 `all OK` 和 `usage: lerobot-calibrate-amazing-hand ...`。
+> You should see `all OK` and `usage: lerobot-calibrate-amazing-hand ...`.
 
 ---
 
-## 步骤 9：确认串口
+## Step 9: Confirm the serial ports
 
 ```bash
 ls -l /dev/ttyACM* /dev/ttyUSB* 2>/dev/null
 ```
 
-或 `lerobot-find-port`。确认三设备路径（示例 `/dev/ttyACM0`/`/dev/ttyACM1`/`/dev/ttyACM2`，**需替换为你的实际值**）。
+Or use `lerobot-find-port`. Confirm the paths of the three devices (examples: `/dev/ttyACM0`/`/dev/ttyACM1`/`/dev/ttyACM2`, **replace with your actual values**).
 
 ---
 
-完成 → [阶段二：标定](../02-calibration/linux.md)
+Done → [Stage 2: Calibration](../02-calibration/linux.md)
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-| 现象 | 解决 |
+| Symptom | Solution |
 |---|---|
-| `conda` 命令找不到 | `source ~/.bashrc` 或 `conda init` 后重开终端 |
-| `pkgs/free` 404 | 该通道已下线，不要添加 |
-| 串口 `Permission denied` | 步骤 7 `sudo chmod 666` |
-| 依赖装不上/慢 | 配置 pip 国内源（步骤 6 提示） |
-| 安装报 `evdev` 编译错 | 步骤 3 `sudo apt install build-essential` |
-| GPU 训练 CUDA 检查 `False` | 见阶段五训练文档 |
+| `conda` command not found | Run `source ~/.bashrc`, or reopen the terminal after `conda init` |
+| `pkgs/free` 404 | That channel is decommissioned; do not add it |
+| Serial port `Permission denied` | Step 7: `sudo chmod 666` |
+| Dependencies fail to install / are slow | Configure a China mainland pip mirror (hint in Step 6) |
+| Install fails with an `evdev` compile error | Step 3: `sudo apt install build-essential` |
+| GPU training CUDA check returns `False` | See the Stage 5 training document |

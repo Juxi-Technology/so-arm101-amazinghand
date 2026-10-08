@@ -22,7 +22,7 @@
 - **一体化标定**：`lerobot-calibrate-amazing-hand` 图形化标定手部开合角度与夹爪方向，结果自动落盘、启动自动加载，**无需修改任何代码**
 - **数据采集与训练**：支持双路相机同步采集，产出 LeRobotDataset v3.0 格式数据集，可直接用于 ACT 等策略训练
 - **容器化交付**：提供 CPU / CUDA 两套 Docker 镜像，导入即用，免装环境
-- **中文文档完备**：六阶段教程，Windows / Linux 分平台
+- **文档完备**：六阶段教程，Windows / Linux 分平台（仓库内为英文版，中文版见 [wiki](https://wiki.juxitech.com/zh-hant/tutorials/robot-arms/so-arm-amazinghand/)）
 
 ## 硬件要求
 
@@ -48,6 +48,13 @@
 | 4. 数据采集 | [win](tutorials/04-data-collection/win.md) | [linux](tutorials/04-data-collection/linux.md) |
 | 5. 模型训练 | [win](tutorials/05-training/win.md) | [linux](tutorials/05-training/linux.md) |
 | 6. 部署评估 | [win](tutorials/06-deployment/win.md) | [linux](tutorials/06-deployment/linux.md) |
+
+> 📖 **文档语言**
+>
+> | 语言 | 位置 |
+> |---|---|
+> | **English** | 本仓库 —— [`tutorials/`](tutorials/) |
+> | **简体中文** | [wiki.juxitech.com](https://wiki.juxitech.com/zh-hant/tutorials/robot-arms/so-arm-amazinghand/) |
 
 **环境安装（概要）**：
 
@@ -100,7 +107,7 @@ docker load -i dist/lerobot-amazinghand-cpu.tar
 | `src/lerobot/scripts/lerobot_calibrate_amazing_hand.py` | **新增** —— 灵巧手一体化标定 GUI |
 | `src/lerobot/robots/so_follower/so_follower.py` | 总线写操作增加重试，提升偶发丢包容错 |
 | `pyproject.toml` | 新增 `amazinghand` extra |
-| `tutorials/` | **新增** —— 六阶段中文教程 |
+| `tutorials/` | **新增** —— 六阶段教程（英文版） |
 | `docker/Dockerfile.amazinghand.*` | **新增** —— CPU / CUDA 镜像 |
 
 其余目录（`policies/`、`datasets/`、`envs/` 等）与原版 LeRobot 一致。
@@ -113,7 +120,7 @@ so-arm101-amazinghand/
 │   ├── robots/so_amazing_hand/          # 灵巧手机械臂定义（本项目核心）
 │   ├── scripts/lerobot_calibrate_amazing_hand.py  # 标定工具
 │   └── ...                              # 其余为 LeRobot 原生代码
-├── tutorials/                           # 六阶段中文教程（Win / Linux）
+├── tutorials/                           # 六阶段教程（英文，Win / Linux）
 ├── docker/                              # 容器化方案
 ├── diagnose_feetech_bus.py              # Feetech 总线诊断工具
 └── preview_cameras.py                   # 摄像头实时预览工具

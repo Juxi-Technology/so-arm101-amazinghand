@@ -1,85 +1,85 @@
-# 阶段三：遥操作（Linux）
+# Stage 3: Teleoperation (Linux)
 
-本阶段启动遥操作闭环：主动臂控制从动臂运动、夹爪控制 AmazingHand 开合。这是验证整套系统是否正常工作的关键阶段。
-
----
-
-## 前置条件
-
-- 已完成 [阶段一：环境搭建](../01-environment/linux.md) 和 [阶段二：标定](../02-calibration/linux.md)
-- 串口权限已配置
-- 三设备已上电、串口已记录
+This stage brings up the teleoperation loop: the leader arm controls the follower arm's motion, and the gripper controls the AmazingHand's open/close motion. This is the critical stage for verifying that the entire system works correctly.
 
 ---
 
-## 运行遥操作
+## Prerequisites
+
+- Completed [Stage 1: Environment Setup](../01-environment/linux.md) and [Stage 2: Calibration](../02-calibration/linux.md)
+- Serial port permissions have been configured
+- All three devices are powered on and their serial ports have been recorded
+
+---
+
+## Running Teleoperation
 
 ```bash
 lerobot-teleoperate \
   --robot.type=so101_amazing_hand \
-  --robot.port=<从动臂串口> \
-  --robot.hand_port=<手串口> \
+  --robot.port=<follower-port> \
+  --robot.hand_port=<hand-port> \
   --robot.id=amazing_hand_follower \
   --teleop.type=so101_leader \
-  --teleop.port=<主动臂串口> \
+  --teleop.port=<leader-port> \
   --teleop.id=amazing_hand_leader
 ```
 
-> 将 `<从动臂串口>` / `<手串口>` / `<主动臂串口>` 替换为你机器实际的路径（示例 `/dev/ttyACM0` / `/dev/ttyACM2` / `/dev/ttyACM1`）。
+> Replace `<follower-port>` / `<hand-port>` / `<leader-port>` with the actual paths on your machine (example: `/dev/ttyACM0` / `/dev/ttyACM2` / `/dev/ttyACM1`).
 
-**预期效果**：
-- 主动臂 5 关节 → 从动臂跟随
-- 主动臂夹爪 → AmazingHand 开合（比例跟随：半捏 = 半闭）
+**Expected behavior**:
+- Leader arm 5 joints → follower arm follows
+- Leader arm gripper → AmazingHand open/close (proportional following: half pinch = half close)
 
-> **💡 参数说明**：
-> - `--robot.type=so101_amazing_hand`：从动臂 + 手组合机器人
-> - `--robot.port`：从动臂串口
-> - `--robot.hand_port`：手串口
-> - `--teleop.type=so101_leader`：主动臂遥操作器
-> - `--teleop.port`：主动臂串口
+> **💡 Parameter notes:**
+> - `--robot.type=so101_amazing_hand`: follower arm + hand combined robot
+> - `--robot.port`: follower arm serial port
+> - `--robot.hand_port`: hand serial port
+> - `--teleop.type=so101_leader`: leader arm teleoperator
+> - `--teleop.port`: leader arm serial port
 
 ---
 
-## 首次运行必做：方向验证
+## Must Do on First Run: Direction Check
 
-启动后，先做**方向测试**，确认以下两点都正确：
+After launching, first run a **direction test** to confirm that both of the following are correct:
 
-| 测试 | 操作 | 正确现象 |
+| Test | Action | Correct behavior |
 |---|---|---|
-| 臂跟随 | 转动主动臂各关节 | 从动臂同向跟随 |
-| 手开合 | 张开/捏合主动臂夹爪 | 夹爪张开 → 手张开；夹爪捏合 → 手闭合 |
+| Arm following | Rotate each leader arm joint | The follower arm follows in the same direction |
+| Hand open/close | Open/close the leader arm gripper | Gripper open → hand open; gripper closed → hand closed |
 
-> **⚠️ 注意（方向反了怎么办）**：
-> - **手开合方向反**（张开夹爪手反而闭合）：说明手角度标定不准，重新执行标定工具（含夹爪方向标定），保存后自动生效，**无需手动改文件**。参见 [阶段二：标定](../02-calibration/linux.md)。
-> - **夹爪映射方向反**（夹爪张开手反而闭合）：同上，标定时在主动臂夹爪**张开**时点 `[Capture Open]`、**捏合**时点 `[Capture Close]`，工具自动记录并保存 `gripper_open_pos`/`gripper_close_pos`，启动时自动加载。
+> **⚠️ Note (if the direction is reversed):**
+> - **Hand open/close direction reversed** (opening the gripper closes the hand instead): this means the hand angle calibration is inaccurate. Re-run the calibration tool (including the gripper direction calibration); changes take effect automatically once saved, and **no manual file edits are needed**. See [Stage 2: Calibration](../02-calibration/linux.md).
+> - **Gripper mapping direction reversed** (opening the gripper closes the hand instead): same as above — during calibration, click `[Capture Open]` while the leader gripper is **open** and `[Capture Close]` while it is **closed**. The tool records and saves `gripper_open_pos`/`gripper_close_pos` automatically, and loads them automatically at startup.
 >
-> 修改后**重新运行遥操作**验证。
+> After making the change, **re-run teleoperation** to verify.
 
 ---
 
-## 比例跟随验证
+## Proportional Following Check
 
-方向正确后，验证比例细腻度：
-1. **缓慢**张开夹爪 → 手应**平滑**张开（无跳变）
-2. 夹爪停在**中间** → 手也应停在中间
-3. 快速张合 → 手快速响应，无卡顿
+Once the direction is correct, verify the fine-grained proportional response:
+1. **Slowly** open the gripper → the hand should open **smoothly** (no jumps)
+2. Stop the gripper **halfway** → the hand should also stop halfway
+3. Open/close quickly → the hand responds quickly, without stuttering
 
-> **⚠️ 注意（手开合过度的历史问题）**：若手在夹爪开一半时就闭合，多为手角度标定时"张开/握拳"位置不准。重新执行标定步骤 3（手角度 GUI），标定更精确的开合位置。
+> **⚠️ Note (past issue with excessive hand travel):** If the hand closes while the gripper is only half open, it is usually because the "open/fist" positions from hand angle calibration are inaccurate. Re-run calibration step 3 (hand angle GUI) to calibrate more precise open/close positions.
 
 ---
 
-## 可选：带摄像头的可视化
+## Optional: Visualization with Cameras
 
-加 `--robot.cameras` 接入相机、`--display_data=true` 打开 Rerun 可视化窗口（实时显示相机图像 + 关节状态）：
+Add `--robot.cameras` to connect cameras and `--display_data=true` to open the Rerun visualization window (showing camera images + joint states in real time):
 
 ```bash
 lerobot-teleoperate \
   --robot.type=so101_amazing_hand \
-  --robot.port=<从动臂串口> \
-  --robot.hand_port=<手串口> \
+  --robot.port=<follower-port> \
+  --robot.hand_port=<hand-port> \
   --robot.id=amazing_hand_follower \
   --teleop.type=so101_leader \
-  --teleop.port=<主动臂串口> \
+  --teleop.port=<leader-port> \
   --teleop.id=amazing_hand_leader \
   --robot.cameras='{
     wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30, fourcc: "MJPG"},
@@ -88,37 +88,37 @@ lerobot-teleoperate \
   --display_data=true
 ```
 
-> **💡 说明**：
-> - `index_or_path` 为相机索引，先用 `lerobot-find-cameras` 确认（不同机器编号不同）。
-> - `fourcc: "MJPG"` 可选，可显著降低 USB 摄像头带宽占用（改用 MJPEG 压缩），卡顿时可加。
-> - 相机只需一个时，删掉对应一行（如 `top`）即可。
+> **💡 Note:**
+> - `index_or_path` is the camera index; confirm it first with `lerobot-find-cameras` (indices differ between machines).
+> - `fourcc: "MJPG"` is optional and can significantly reduce USB camera bandwidth usage (by switching to MJPEG compression); add it if you see stuttering.
+> - If you only need one camera, just delete the corresponding line (e.g., `top`).
 
-> **⚠️ 注意（rerun 依赖与显示）**：`--display_data=true` 需要 rerun 可视化包，未安装时执行：
+> **⚠️ Note (rerun dependency and display):** `--display_data=true` requires the rerun visualization package; if it is not installed, run:
 > ```bash
 > pip install "rerun-sdk>=0.24.0,<0.34.0"
 > ```
-> 且 rerun 窗口需要显示服务器（本地图形会话或 `ssh -X`）。无图形环境时**不影响遥操作**，去掉 `--display_data=true` 即可。
+> The rerun window also needs a display server (a local graphical session or `ssh -X`). Without a graphical environment this **does not affect teleoperation**; simply remove `--display_data=true`.
 
 ---
 
-## 退出
+## Exiting
 
-按 `Ctrl+C` 停止。程序自动：
-1. 解除 8 个手舵机扭矩
-2. 断开从动臂/主动臂串口
-3. 断开相机（如有）
+Press `Ctrl+C` to stop. The program automatically:
+1. Releases torque on the 8 hand servos
+2. Disconnects the follower/leader arm serial ports
+3. Disconnects the cameras (if any)
 
-> **⚠️ 注意**：正常退出前**不要直接关闭终端**（如 `kill -9`），否则可能残留串口占用。若异常退出后串口被占用，关闭残留进程或重插 USB。
+> **⚠️ Note:** **Do not close the terminal directly** before a clean exit (e.g., `kill -9`), or the serial port may be left occupied. If a port stays occupied after an abnormal exit, kill the leftover process or replug the USB.
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-| 现象 | 原因 | 解决 |
+| Symptom | Cause | Solution |
 |---|---|---|
-| 串口 `Permission denied` | 权限未配置 | `sudo chmod 666 /dev/ttyACM*` |
-| 手方向反 | 手角度或夹爪映射反 | 见上文"方向验证" |
-| 手开合过度/不足 | 手角度标定不准 | 重标手角度 GUI |
-| 臂不跟随 | 标定缺失/串口错 | 确认从动臂已标定、`--robot.port` 正确 |
-| rerun 报错 | 可视化依赖/显示缺失 | 去掉 `--display_data=true` |
-| 串口被占用 | 上次异常退出 | 关残留进程或重插 USB |
+| Serial port `Permission denied` | Permissions not configured | `sudo chmod 666 /dev/ttyACM*` |
+| Hand direction reversed | Hand angle or gripper mapping reversed | See "Direction check" above |
+| Hand opens/closes too much or too little | Hand angle calibration inaccurate | Re-run the hand angle calibration (GUI) |
+| Arm does not follow | Missing calibration / wrong serial port | Confirm the follower arm is calibrated and `--robot.port` is correct |
+| rerun error | Visualization dependency / display missing | Remove `--display_data=true` |
+| Serial port occupied | Previous abnormal exit | Kill the leftover process or replug the USB |

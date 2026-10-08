@@ -1,14 +1,14 @@
-# 阶段一：环境搭建（Windows）
+# Stage 1: Environment Setup (Windows)
 
-使用 **Miniconda** 创建独立 Python 环境，安装 LeRobot 及 AmazingHand 支持。本页按**严格顺序**执行，每个代码块可整体复制。
+Use **Miniconda** to create an isolated Python environment and install LeRobot with AmazingHand support. Follow this page in **strict order**; each code block can be copied as a whole.
 
-> 环境版本：Python 3.12 · PyTorch ≥ 2.10 · LeRobot 0.6.2（本仓库定制版）
+> Environment versions: Python 3.12 · PyTorch ≥ 2.10 · LeRobot 0.6.2 (the customized version in this repository)
 
 ---
 
-## 步骤 1：安装 Miniconda
+## Step 1: Install Miniconda
 
-**命令行安装**（PowerShell，推荐）——中国大陆网络用清华镜像：
+**Command-line installation** (PowerShell, recommended) — use the Tsinghua mirror for China mainland networks:
 
 ```powershell
 curl.exe -L -o Miniconda3-latest-Windows-x86_64.exe https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Windows-x86_64.exe
@@ -23,21 +23,21 @@ Start-Process -Wait .\Miniconda3-latest-Windows-x86_64.exe -ArgumentList "/S", "
 C:\Users\$env:USERNAME\miniconda3\Scripts\conda.exe init powershell
 ```
 
-重开 PowerShell 后验证：
+Reopen PowerShell, then verify:
 
 ```powershell
 conda --version
 ```
 
-> **图形化安装**（可选）：从官网 https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe 下载安装包，双击安装，勾选 **"Add to PATH"**。
+> **Graphical installation** (optional): download the installer from https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe, double-click to install, and check **"Add to PATH"**.
 >
-> 若 `conda` 命令找不到，用 **Anaconda Prompt**（开始菜单）代替 PowerShell。
+> If the `conda` command cannot be found, use **Anaconda Prompt** (Start menu) instead of PowerShell.
 
 ---
 
-## 步骤 2：配置 conda 国内源（中国大陆网络）
+## Step 2: Configure conda mirrors (China mainland networks)
 
-**先清空默认源，再添加清华镜像**（新 Miniconda 会默认带 `repo.anaconda.com` 官方源，触发 ToS 检查且慢）：
+**First clear the default channels, then add the Tsinghua mirrors** (a fresh Miniconda ships with the official `repo.anaconda.com` channel by default, which triggers a ToS check and is slow):
 
 ```powershell
 conda config --remove-key channels
@@ -48,11 +48,11 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/m
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 ```
 
-> `pkgs/free` 已下线（404），不要添加。网络不限可跳过本步骤。
+> `pkgs/free` has been decommissioned (404); do not add it. If your network is unrestricted, you can skip this step.
 
 ---
 
-## 步骤 3：创建虚拟环境
+## Step 3: Create the virtual environment
 
 ```powershell
 conda create -y -n lerobot python=3.12
@@ -64,74 +64,74 @@ python --version
 python -c "import struct; print(struct.calcsize('P')*8, 'bit')"
 ```
 
-> 预期 `Python 3.12.x` + `64 bit`。若 `conda activate` 无 `(lerobot)` 前缀，见文末故障排查。
+> Expected: `Python 3.12.x` + `64 bit`. If `conda activate` doesn't show the `(lerobot)` prefix, see the troubleshooting section at the end.
 
 ---
 
-## 步骤 4：安装 ffmpeg（视频解码必需）
+## Step 4: Install ffmpeg (required for video decoding)
 
-LeRobot 录制/回放视频数据依赖 ffmpeg：
+LeRobot depends on ffmpeg to record/replay video data:
 
 ```powershell
 conda install ffmpeg -c conda-forge -y
 ```
 
-> 国内网络若慢，可用已配置的清华 conda-forge 通道。不装会导致录数据/播放视频报错。
+> If the network is slow in China mainland, you can use the already-configured Tsinghua conda-forge channel. Skipping this will cause errors when recording data or playing back video.
 
 ---
 
-## 步骤 5：安装项目依赖
+## Step 5: Install project dependencies
 
 ```powershell
 cd D:\Project\so-arm101-amazinghand
 pip install -e ".[amazinghand]"
 ```
 
-`amazinghand` 包含：`feetech-servo-sdk`（臂电机）、`rustypot`（手电机）、`pygame`（标定 GUI）、`pyserial`（串口）。
+`amazinghand` includes: `feetech-servo-sdk` (arm motors), `rustypot` (hand motors), `pygame` (calibration GUI), `pyserial` (serial port).
 
-> pip 慢时先配置国内源：
+> If pip is slow, configure a China mainland mirror first:
 > ```powershell
 > pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 > ```
 
 ---
 
-## 步骤 6：验证环境
+## Step 6: Verify the environment
 
 ```powershell
 python -c "import scservo_sdk, rustypot, pygame, serial, lerobot; print('all OK')"
 lerobot-calibrate-amazing-hand --help
 ```
 
-> 应显示 `all OK` 和 `usage: lerobot-calibrate-amazing-hand ...`。
+> You should see `all OK` and `usage: lerobot-calibrate-amazing-hand ...`.
 
 ---
 
-## 步骤 7：确认串口
+## Step 7: Confirm the serial ports
 
 ```powershell
 lerobot-find-port
 ```
 
-在设备管理器 → 端口(COM 和 LPT) 确认三设备 COM 号（示例 `COM54`/`COM58`/`COM11`，**需替换为你的实际值**）。COM 号插拔后会变，重跑确认。
+In Device Manager → Ports (COM & LPT), confirm the COM numbers of the three devices (examples: `COM54`/`COM58`/`COM11`, **replace with your actual values**). COM numbers change after unplugging and replugging, so rerun to confirm.
 
 ---
 
-完成 → [阶段二：标定](../02-calibration/win.md)
+Done → [Stage 2: Calibration](../02-calibration/win.md)
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-| 现象 | 解决 |
+| Symptom | Solution |
 |---|---|
-| `conda` 不是命令 | 重开终端 / Anaconda Prompt / `conda init powershell` |
-| ToS 错误（repo.anaconda.com） | 步骤 2 清空 channels 只留清华源；或 `conda tos accept ...` |
-| `pkgs/free` 404 | 该通道已下线，不要添加 |
-| `conda activate` 无前缀 | 执行策略问题，见下 |
-| 依赖装不上/慢 | 配置 pip 国内源（步骤 5 提示） |
+| `conda` is not recognized as a command | Reopen the terminal / use Anaconda Prompt / run `conda init powershell` |
+| ToS error (repo.anaconda.com) | Step 2: clear the channels and keep only the Tsinghua mirrors; or run `conda tos accept ...` |
+| `pkgs/free` 404 | That channel is decommissioned; do not add it |
+| `conda activate` shows no prefix | Execution policy issue, see below |
+| Dependencies fail to install / are slow | Configure a China mainland pip mirror (hint in Step 5) |
 
-**conda activate 无 `(lerobot)` 前缀**（Windows 常见）：
+**`conda activate` shows no `(lerobot)` prefix** (common on Windows):
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -139,4 +139,4 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 conda activate lerobot
 ```
 
-> `D:\Software\Miniconda3` 替换为你的 Miniconda 安装路径。
+> Replace `D:\Software\Miniconda3` with your Miniconda installation path.

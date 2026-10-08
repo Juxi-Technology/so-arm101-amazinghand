@@ -1,126 +1,126 @@
-# 阶段二：标定（Linux）
+# Stage 2: Calibration (Linux)
 
-本阶段对三个设备进行标定：主动臂、从动臂、AmazingHand 手。标定是遥操作正确性的前提，**必须完成本阶段才能进入遥操作**。
+This stage calibrates three devices: the leader arm, the follower arm, and the AmazingHand. Calibration is a prerequisite for correct teleoperation — **you must complete this stage before moving on to teleoperation**.
 
-> **标定顺序**：主动臂 → 从动臂+手 → 手角度。每步都需**终端交互**（物理操作 + 按键）。
+> **Calibration order:** leader arm → follower arm + hand → hand angles. Every step requires **terminal interaction** (physical manipulation + key presses).
 >
-> **⚠️ 通用提醒**：本页命令中的串口参数为**示例占位**，必须替换为你机器实际的串口路径（见[阶段一](../01-environment/linux.md)记录的串口）。
+> **⚠️ General reminder:** The serial port arguments in the commands on this page are **example placeholders** — you must replace them with the actual serial port paths for your machine (see the ports recorded in [Stage 1](../01-environment/linux.md)).
 
 ---
 
-## 前置条件
+## Prerequisites
 
-- 已完成 [阶段一：环境搭建](../01-environment/linux.md)
-- conda 环境 `lerobot` 已激活
-- 串口权限已配置（阶段一第 5 节）
-- 三设备串口已记录
-- 设备已上电、独立供电
+- Completed [Stage 1: Environment Setup](../01-environment/linux.md)
+- The conda environment `lerobot` is activated
+- Serial port permissions are configured (Step 7 of Stage 1)
+- Serial ports for all three devices are recorded
+- Devices are powered on with independent power supplies
 
 ---
 
-## 步骤 1：标定主动臂
+## Step 1: Calibrate the Leader Arm
 
 ```bash
 lerobot-calibrate \
-  --teleop.type=so101_leader --teleop.port=<主动臂串口> --teleop.id=amazing_hand_leader
+  --teleop.type=so101_leader --teleop.port=<leader-port> --teleop.id=amazing_hand_leader
 ```
 
-> 将 `<主动臂串口>` 替换为你机器的实际路径（示例 `/dev/ttyACM1`）。
+> Replace `<leader-port>` with the actual path for your machine (example: `/dev/ttyACM1`).
 
-**交互步骤**：
-1. 将主动臂**所有关节移到中间位**，按 Enter
-2. 将**每个关节依次推到最大/最小范围**，完成后按 Enter
+**Interactive steps:**
+1. Move **all joints of the leader arm to the middle position**, then press Enter
+2. **Push each joint in turn through its maximum/minimum range**, then press Enter
 
-**验证**：标定文件自动保存到
+**Verification:** The calibration file is saved automatically to
 `~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/amazing_hand_leader.json`
 
-> **⚠️ 注意 1（夹爪必标）**：6 号夹爪舵机范围作为 `gripper.pos`（0~100）归一化基准。夹爪务必从全开推到全闭，标定到位，否则手开合比例失真。
+> **⚠️ Note 1 (gripper must be calibrated):** The range of gripper servo #6 serves as the normalization reference for `gripper.pos` (0-100). Be sure to push the gripper from fully open to fully closed and calibrate it properly; otherwise the hand's open/close ratio will be distorted.
 >
-> **⚠️ 注意 2（自由转动）**：标定时机械臂需能自由转动，确保舵机空载。
+> **⚠️ Note 2 (free movement):** During calibration, the arm must be able to move freely — make sure the servos are unloaded.
 >
-> **⚠️ 注意 3（权限）**：若报串口 `Permission denied`，先执行 `sudo chmod 666 /dev/ttyACM*`（或确认阶段一已配 udev 规则）。
+> **⚠️ Note 3 (permissions):** If you get a serial port `Permission denied` error, first run `sudo chmod 666 /dev/ttyACM*` (or confirm the udev rules were already set up in Stage 1).
 
 ---
 
-## 步骤 2：标定从动臂（同时连接手）
+## Step 2: Calibrate the Follower Arm (with the hand connected)
 
 ```bash
 lerobot-calibrate \
-  --robot.type=so101_amazing_hand --robot.port=<从动臂串口> --robot.hand_port=<手串口> --robot.id=amazing_hand_follower
+  --robot.type=so101_amazing_hand --robot.port=<follower-port> --robot.hand_port=<hand-port> --robot.id=amazing_hand_follower
 ```
 
-> 将 `<从动臂串口>` / `<手串口>` 替换为实际路径（示例 `/dev/ttyACM0` / `/dev/ttyACM2`）。
+> Replace `<follower-port>` / `<hand-port>` with the actual paths (example: `/dev/ttyACM0` / `/dev/ttyACM2`).
 
-**交互步骤**：
-1. 将从动臂 **5 个关节**（无 6 号）移到中间位，按 Enter
-2. 将各关节走全行程，按 Enter
+**Interactive steps:**
+1. Move the follower arm's **5 joints** (no joint #6) to the middle position, then press Enter
+2. Move each joint through its full range of motion, then press Enter
 
-**验证**：标定文件保存到
+**Verification:** The calibration file is saved to
 `~/.cache/huggingface/lerobot/calibration/robots/so101_amazing_hand/amazing_hand_follower.json`
 
-> **⚠️ 注意 1（手扭矩自动启用）**：此命令连接时**自动启用 8 个手舵机扭矩**（日志显示 `enabling AmazingHand torque`），标定结束手会张开，属正常现象。
+> **⚠️ Note 1 (hand torque enabled automatically):** When this command connects, it **automatically enables torque on all 8 hand servos** (the log shows `enabling AmazingHand torque`). The hand will open when calibration finishes — this is normal.
 >
-> **⚠️ 注意 2（不会弹手 GUI）**：手角度**不使用** lerobot 的 `RangeFinderGUI`，从动臂标定结束即完成。手角度用步骤 3 的专用工具。
+> **⚠️ Note 2 (no hand GUI is launched):** Hand angles do **not** use lerobot's `RangeFinderGUI`; this step is complete as soon as follower-arm calibration ends. Hand angles are handled by the dedicated tool in Step 3.
 >
-> **⚠️ 注意 3（串口占用）**：此步骤占用手串口。**不要**同时运行其他占用该串口的进程。
+> **⚠️ Note 3 (serial port in use):** This step occupies the hand's serial port. Do **not** run other processes that use that port at the same time.
 
 ---
 
-## 步骤 3：标定手角度 + 夹爪方向（专用 GUI）
+## Step 3: Calibrate Hand Angles + Gripper Direction (dedicated GUI)
 
 ```bash
-lerobot-calibrate-amazing-hand --hand_port <手串口> --leader_port <主动臂串口>
+lerobot-calibrate-amazing-hand --hand_port <hand-port> --leader_port <leader-port>
 ```
 
-> 将 `<手串口>` / `<主动臂串口>` 替换为实际路径（示例 `/dev/ttyACM2` / `/dev/ttyACM1`）。`--leader_port` 用于同步标定**夹爪方向**（见下）。
+> Replace `<hand-port>` / `<leader-port>` with the actual paths (example: `/dev/ttyACM2` / `/dev/ttyACM1`). `--leader_port` is used to calibrate the **gripper direction** at the same time (see below).
 
-> **⚠️ 注意（无显示环境）**：GUI 需要图形桌面。若在无显示器/SSH 环境运行，会报 `pygame.error: video system not initialized`。解决方案：
-> - 在本地图形会话运行；或
-> - 通过 X11 转发（`ssh -X`）运行。
+> **⚠️ Note (headless environment):** The GUI requires a graphical desktop. If you run it in a monitor-less / SSH environment, you will get `pygame.error: video system not initialized`. Solutions:
+> - Run it in a local graphical session; or
+> - Run it over X11 forwarding (`ssh -X`).
 
-**GUI 操作**：
-1. 拖动 4 根手指滑块（index/middle/ring/thumb），使手**完全张开**，点击 **`Save Open`**
-2. 拖动滑块使手**完全握拳**，点击 **`Save Close`**
-3. **主动臂夹爪张开**，点击 **`Capture Open`**（GUI 实时显示 `gripper.pos`，张开时应接近 100）
-4. **主动臂夹爪捏合**，点击 **`Capture Close`**（捏合时应接近 0）
-5. **自动保存**：以上四个值都设置后，窗口顶部弹出绿色横幅 `AUTO-SAVED to .../hand_angles.json`，终端同步打印路径
-6. 关闭窗口（手自动解除扭矩）
+**GUI steps:**
+1. Drag the four finger sliders (index/middle/ring/thumb) to make the hand **fully open**, then click **`Save Open`**
+2. Drag the sliders to make the hand **fully clenched into a fist**, then click **`Save Close`**
+3. **Open the leader arm's gripper**, then click **`Capture Open`** (the GUI shows `gripper.pos` in real time; it should be close to 100 when open)
+4. **Pinch the leader arm's gripper closed**, then click **`Capture Close`** (it should be close to 0 when pinched shut)
+5. **Auto-save:** once all four values are set, a green banner `AUTO-SAVED to .../hand_angles.json` appears at the top of the window, and the terminal prints the path as well
+6. Close the window (the hand's torque is released automatically)
 
-**验证**：角度与夹爪映射保存到
+**Verification:** The angle and gripper mapping is saved to
 `~/.cache/huggingface/lerobot/calibration/robots/so101_amazing_hand/hand_angles.json`
 
-> **⚠️ 注意 1（必须标定）**：**每台新电脑/每只手都必须执行本步骤**。config 里的角度是 AmazingHand 官方通用默认，仅作后备；`hand_angles.json` 存在时优先加载你的实测值。不标定可能导致开合方向/范围错误。
+> **⚠️ Note 1 (this step is mandatory):** **You must run this step on every new computer and for every hand.** The angles in the config are AmazingHand's official generic defaults and serve only as a fallback; when `hand_angles.json` exists, your measured values are preferred. Skipping this calibration may lead to the wrong open/close direction or range.
 >
-> **⚠️ 注意 2（自动加载）**：机器人每次启动读取 `hand_angles.json`（含 `gripper_open_pos`/`gripper_close_pos`）覆盖 config 默认值，**无需改代码**。夹爪方向会因主动臂而异，标定一次即可。
+> **⚠️ Note 2 (loaded automatically):** Every time the robot starts, it reads `hand_angles.json` (including `gripper_open_pos`/`gripper_close_pos`) to override the config defaults — **no code changes required**. The gripper direction varies from one leader arm to another, so a one-time calibration is enough.
 >
-> **⚠️ 注意 3（滑块语义）**：滑块向 `+` 方向使该指 m1 向 `+angle`、m2 向 `-angle`（镜像）。以**手的实际姿态**判断张开/握拳，不必关注角度数值。
+> **⚠️ Note 3 (slider semantics):** Moving a slider toward `+` drives that finger's m1 toward `+angle` and m2 toward `-angle` (mirrored). Judge open vs. clenched by the **hand's actual pose**; there is no need to focus on the angle values.
 >
-> **⚠️ 注意 4（精确标定）**：标定"完全张开"时不要过度（手指歪斜/散开），"完全握拳"时不要过度挤压（舵机持续受压）。
+> **⚠️ Note 4 (precise calibration):** When calibrating the "fully open" position, do not overextend (fingers skewing or splaying apart); for "fully clenched", do not over-squeeze (which keeps the servos under constant pressure).
 >
-> **⚠️ 注意 5（Capture 顺序）**：`Capture Open` / `Capture Close` 对应**主动臂夹爪**的开合，不是手手指。若手张开方向反了，多半是这里标反或手角度标反，重标即可。
+> **⚠️ Note 5 (Capture order):** `Capture Open` / `Capture Close` correspond to the **leader arm's gripper** opening/closing, not the hand's fingers. If the hand opens in the wrong direction, it is most likely that this was captured backwards or the hand angles were calibrated backwards; simply recalibrate.
 
 ---
 
-## 重标定
+## Recalibration
 
-只需重标某一部分时：
-- **只重标手** → 仅运行步骤 3
-- **只重标从动臂** → 仅运行步骤 2（会顺带启用手扭矩）
-- **全部重标** → 步骤 1 → 2 → 3
+If you only need to recalibrate part of the setup:
+- **Hand only** → run Step 3 only
+- **Follower arm only** → run Step 2 only (this also enables hand torque as a side effect)
+- **Full recalibration** → Steps 1 → 2 → 3
 
-> **⚠️ 注意**：步骤 2 和步骤 3 **不能同时运行**（都占用手串口）。
-
----
-
-完成本阶段后，进入 [阶段三：遥操作](../03-teleoperation/linux.md)。
+> **⚠️ Note:** Steps 2 and 3 **cannot be run at the same time** (both occupy the hand's serial port).
 
 ---
 
-## 故障排查
+Once this stage is complete, proceed to [Stage 3: Teleoperation](../03-teleoperation/linux.md).
 
-| 现象 | 原因 | 解决 |
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Solution |
 |---|---|---|
-| 串口 `Permission denied` | 权限未配置 | `sudo chmod 666 /dev/ttyACM*` 或配 udev |
-| 标定手 GUI 打不开 | 无图形环境 | 本地图形会话运行，或 `ssh -X` 转发 |
-| 手驱动报 `Operation timed out` | 串口忙碌/时序 | 确认手串口未被占用，重试 |
-| 主动臂标定报 2307 型号错误 | 臂总线被污染 | 确认未同时连手串口；本项目手走 rustypot 已规避 |
+| Serial port `Permission denied` | Permissions not configured | `sudo chmod 666 /dev/ttyACM*` or configure a udev rule |
+| Hand calibration GUI does not open | No graphical environment | Run in a local graphical session, or use `ssh -X` forwarding |
+| Hand driver reports `Operation timed out` | Serial port busy / timing | Confirm the hand's serial port is not in use, then retry |
+| Leader arm calibration reports a 2307 model error | Arm bus contaminated | Confirm the hand's serial port is not connected at the same time; this project avoids this by driving the hand over rustypot |

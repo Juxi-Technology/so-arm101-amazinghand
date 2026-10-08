@@ -1,44 +1,44 @@
-# 阶段五：模型训练（Linux）
+# Stage 5: Model Training (Linux)
 
-本阶段使用采集的数据集训练策略（ACT 等），产出可部署的模型。**Linux 是 GPU 训练的最佳环境**——CUDA torch 依赖自动解析，无需手动配置。
-
----
-
-## 前置条件
-
-- 已完成 [阶段四：数据采集](../04-data-collection/linux.md)
-- NVIDIA GPU（推荐）、CUDA 驱动（`nvidia-smi` 可查）
-- 数据集已录制（本地缓存可见）
+This stage trains a policy (ACT, etc.) on the collected dataset to produce a deployable model. **Linux is the best environment for GPU training** — CUDA torch dependencies resolve automatically, with no manual configuration needed.
 
 ---
 
-## 步骤 1：确认 GPU 环境
+## Prerequisites
+
+- Completed [Stage 4: Data Collection](../04-data-collection/linux.md)
+- NVIDIA GPU (recommended) and a CUDA driver (check with `nvidia-smi`)
+- Dataset recorded (visible in the local cache)
+
+---
+
+## Step 1: Verify the GPU Environment
 
 ```bash
-# 确认 CUDA 驱动
+# Confirm the CUDA driver
 nvidia-smi
 
-# 确认 torch 可用 CUDA
+# Confirm torch can use CUDA
 python -c "import torch; print('CUDA:', torch.cuda.is_available(), '| GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
 ```
 
-**期望输出**：`CUDA: True | GPU: <你的显卡名>`
+**Expected output**: `CUDA: True | GPU: <your GPU name>`
 
-> **⚠️ 注意（CUDA torch）**：若 `CUDA: False`，说明装的是 CPU 版 torch。重装 CUDA 版：
+> **⚠️ Note (CUDA torch):** If `CUDA: False`, the CPU-only build of torch is installed. Reinstall the CUDA build:
 > ```bash
-> # 官方源（海外网络）
+> # Official index (overseas networks)
 > pip install torch --index-url https://download.pytorch.org/whl/cu128
 >
-> # 中国大陆网络优先用阿里云镜像
+> # For mainland China networks, prefer the Aliyun mirror
 > pip install torch --index-url https://mirrors.aliyun.com/pytorch-wheels/cu128
 > ```
-> 或用 CPU 训练（`--policy.device=cpu`，但速度慢很多）。
+> Alternatively, train on the CPU (`--policy.device=cpu`) — but it is much slower.
 >
-> **💡 提示**：`pip install -e ".[amazinghand]"` 在 Linux 上通常已解析 GPU 版 torch（若检测到 CUDA 环境）。若否，按上述命令重装。
+> **💡 Tip:** On Linux, `pip install -e ".[amazinghand]"` usually resolves a GPU build of torch (if a CUDA environment is detected). If not, reinstall using the commands above.
 
 ---
 
-## 步骤 2：训练
+## Step 2: Train
 
 ```bash
 lerobot-train \
@@ -53,82 +53,82 @@ lerobot-train \
   --steps=60000
 ```
 
-> **💡 说明**：`--dataset.repo_id` 和 `--dataset.root` 必须与[阶段四录制](../04-data-collection/linux.md)时**完全一致**（`repo_id=soarm_amazing_hand_pick`、`root=~/lerobot_data`），即可读取本地数据集，无需 HF 登录。
+> **💡 Note:** `--dataset.repo_id` and `--dataset.root` must **exactly match** the values used when [recording in Stage 4](../04-data-collection/linux.md) (`repo_id=soarm_amazing_hand_pick`, `root=~/lerobot_data`) — the local dataset is then read directly, with no HF login needed.
 
 ---
 
-## 参数说明
+## Parameters
 
-| 参数 | 说明 |
+| Parameter | Description |
 |---|---|
-| `--dataset.repo_id` | 数据集名称（与录制时一致） |
-| `--dataset.root` | 数据集本地路径（与录制时一致） |
-| `--policy.type` | 策略类型，`act` 为常用选择 |
-| `--output_dir` | 训练输出目录（checkpoints、日志） |
-| `--job_name` | 任务名（用于日志区分） |
-| `--policy.device` | `cuda`（GPU）或 `cpu` |
-| `--wandb.enable` | 权重日志，`false` 关闭（无需 wandb 账号） |
-| `--policy.push_to_hub` | 是否推送模型到 HF，`false` 仅本地 |
-| `--steps` | 训练步数 |
+| `--dataset.repo_id` | Dataset name (must match the recording) |
+| `--dataset.root` | Local dataset path (must match the recording) |
+| `--policy.type` | Policy type; `act` is a common choice |
+| `--output_dir` | Training output directory (checkpoints, logs) |
+| `--job_name` | Job name (used to tell runs apart in the logs) |
+| `--policy.device` | `cuda` (GPU) or `cpu` |
+| `--wandb.enable` | Wandb logging; `false` disables it (no wandb account needed) |
+| `--policy.push_to_hub` | Whether to push the model to HF; `false` keeps it local only |
+| `--steps` | Number of training steps |
 
 ---
 
-## 训练过程说明
+## What Happens During Training
 
-- **checkpoints**：每步自动保存到 `outputs/train/soarm_amazing_hand_pick/checkpoints/`
-- **日志**：终端实时显示 loss 等指标
-- **时长**：60000 步在消费级 GPU 上通常数小时（具体取决显卡）
+- **Checkpoints**: saved automatically to `outputs/train/soarm_amazing_hand_pick/checkpoints/`
+- **Logs**: loss and other metrics are displayed live in the terminal
+- **Duration**: 60000 steps typically takes several hours on a consumer-grade GPU (exact time depends on the GPU)
 
-> **⚠️ 注意 1（步数调整）**：`--steps=60000` 为 ACT 典型值。任务简单可减至 30000，复杂任务可加至 100000+。观察 loss 收敛情况。
+> **⚠️ Note 1 (adjusting training steps):** `--steps=60000` is a typical value for ACT. For simple tasks you can reduce it to 30000; for complex tasks you can increase it to 100000+. Watch how the loss converges.
 >
-> **⚠️ 注意 2（训练中断续跑）**：中断后重新运行**同参数命令**会从最后 checkpoint 继续。
+> **⚠️ Note 2 (resume after interruption):** Re-running the **same command with the same arguments** after an interruption resumes from the last checkpoint.
 >
-> **⚠️ 注意 3（wandb）**：如需可视化 loss 曲线，可开 `--wandb.enable=true`（需 `wandb login`）。默认关闭。
+> **⚠️ Note 3 (wandb):** To visualize loss curves, enable `--wandb.enable=true` (requires `wandb login`). Disabled by default.
 >
-> **⚠️ 注意 4（无头服务器）**：若在 SSH/无显示器服务器训练，确保不要依赖 GUI（训练本身无需显示）。若使用 `--display_data` 相关参数则需显示服务器。
+> **⚠️ Note 4 (headless servers):** If you train on an SSH/headless server, make sure nothing depends on a GUI (training itself needs no display). If you use `--display_data` or related arguments, a display server is required.
 >
-> **⚠️ 注意 5（后台训练）**：长训练建议用 `nohup ... &` 或 `tmux` 保持进程，避免 SSH 断开中断：
+> **⚠️ Note 5 (background training):** For long training runs, keep the process alive with `nohup ... &` or `tmux`, so an SSH disconnect does not interrupt it:
 > ```bash
 > tmux new -s train
 > lerobot-train --dataset.repo_id=...
-> # Ctrl+B 然后 D 脱离；tmux attach -t train 重新进入
+> # Detach with Ctrl+B then D; reattach with tmux attach -t train
 > ```
 >
-> **⚠️ 注意 6（AMD 显卡）**：Linux 上 AMD 可用 ROCm，但**仅支持部分独立显卡**（如 RX 6000/7000 系列），**核显（如 Radeon 780M）与多数笔记本 APU 不被支持**。这类机器只能用 CPU 训练（`--policy.device=cpu`），慢数十倍、实际不可行。**建议改用 NVIDIA 显卡机器或云 GPU 训练**，训练好的模型拷回部署即可。
+> **⚠️ Note 6 (AMD GPUs):** On Linux, AMD GPUs can use ROCm, but **only some discrete GPUs are supported** (e.g., the RX 6000/7000 series) — **integrated GPUs (such as the Radeon 780M) and most laptop APUs are not supported**. Such machines can only train on the CPU (`--policy.device=cpu`), which is tens of times slower and not a practical option. **We recommend training on a machine with an NVIDIA GPU or on a cloud GPU instead**, then copying the trained model back for deployment.
 
 ---
 
-## 可选：上传模型到 Hugging Face
+## Optional: Upload the Model to Hugging Face
 
-训练完成后如需把模型共享到云端（供团队部署或备份）：
+After training, if you want to share the model to the cloud (for team deployment or backup):
 
-1. 先登录（同[阶段四](../04-data-collection/linux.md#可选上传数据集到-hugging-face)）：
+1. Log in first (same as [Stage 4](../04-data-collection/linux.md#optional-upload-the-dataset-to-hugging-face)):
    ```bash
    hf auth login
    ```
 
-2. 训练命令加两项：
+2. Add two arguments to the training command:
    ```bash
-   --policy.repo_id=<你的HF用户名或组织名>/soarm_amazing_hand_act \
+   --policy.repo_id=<your-hf-username-or-org>/soarm_amazing_hand_act \
    --policy.push_to_hub=true \
    ```
 
-> **⚠️ 注意**：`--policy.push_to_hub=true` 必须**同时指定 `--policy.repo_id`**，否则报错 `save_checkpoint_to_hub requires --policy.repo_id`。
+> **⚠️ Note:** `--policy.push_to_hub=true` **requires also setting `--policy.repo_id`**; otherwise it fails with `save_checkpoint_to_hub requires --policy.repo_id`.
 >
-> **💡 说明**：上传后部署时可用 `--policy.path=<组织名>/soarm_amazing_hand_act` 直接拉取，无需手动拷贝模型文件。
+> **💡 Note:** After uploading, you can pull the model directly at deployment time with `--policy.path=<org-name>/soarm_amazing_hand_act` — no need to copy model files manually.
 
 ---
 
-完成本阶段后，进入 [阶段六：部署与评估](../06-deployment/linux.md)。
+Once this stage is complete, continue to [Stage 6: Deployment & Evaluation](../06-deployment/linux.md).
 
 ---
 
-## 故障排查
+## Troubleshooting
 
-| 现象 | 原因 | 解决 |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `CUDA: False` | CPU 版 torch | 重装 CUDA 版 torch |
-| 显存不足（OOM） | 批大小过大 | `--policy.batch_size=8` 或更低 |
-| 数据集找不到 | repo_id/root 不一致 | 确认与录制时 `--dataset.repo_id` 和 `--dataset.root` 完全一致 |
-| 训练中途 SSH 断 | 进程被杀 | 用 `tmux`/`nohup` 后台训练 |
-| `wandb` 报错 | 未登录 | `--wandb.enable=false` 或 `wandb login` |
+| `CUDA: False` | CPU-only torch build | Reinstall the CUDA build of torch |
+| Out of memory (OOM) | Batch size too large | `--policy.batch_size=8` or lower |
+| Dataset not found | repo_id/root mismatch | Make sure `--dataset.repo_id` and `--dataset.root` exactly match the values used when recording |
+| SSH disconnects mid-training | Process killed | Train in the background with `tmux`/`nohup` |
+| `wandb` error | Not logged in | `--wandb.enable=false` or `wandb login` |

@@ -1,0 +1,49 @@
+# Docker 构建时排除的内容（不影响本地文件，只是不打进镜像）
+
+# 本地虚拟环境 / 缓存
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 训练产物与本地数据（这几项占 380+ MB，绝不打进镜像）
+outputs/
+*.zip
+
+# lerobot 官方演示素材（视频/图片，约 3.7 MB）
+media/
+docs/
+
+# 开发相关，运行时不需要
+tests/
+examples/
+.github/
+.pre-commit-config.yaml
+Makefile
+conftest.py
+utils/
+scripts/
+docker/
+AGENT_GUIDE.md
+AGENTS.md
+AI_POLICY.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+SO_ARM101_AMAZINGHAND_GUIDE.md
+.dockerignore
+Dockerfile*
+
+# 版本控制
+.git/
+.gitattributes
+.gitignore
+
+# 其他无用文件
+uv.lock
+CLAUDE.md
+pack_for_customer.py

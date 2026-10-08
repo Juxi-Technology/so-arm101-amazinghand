@@ -1,0 +1,58 @@
+# SO-ARM101 + AmazingHand —— CPU 版镜像
+#
+# 构建（在 Linux 上执行）:
+#   docker build -f docker/Dockerfile.amazinghand.cpu -t lerobot-amazinghand:cpu .
+#
+# 国内网络加速（换基础镜像源）:
+#   docker build -f docker/Dockerfile.amazinghand.cpu \
+#     --build-arg BASE_IMAGE=docker.m.daocloud.io/library/python:3.12-slim \
+#     -t lerobot-amazinghand:cpu .
+
+ARG BASE_IMAGE=python:3.12-slim
+FROM ${BASE_IMAGE}
+
+# 国内可换：https://pypi.tuna.tsinghua.edu.cn/simple 或 https://mirrors.aliyun.com/pypi/simple
+ARG PIP_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
+# CPU 版 torch 索引（PyPI 上的 torch 在 Linux 是 CUDA 版，必须显式指定 CPU 索引）
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cpu
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    LANG=C.UTF-8
+
+# ── 系统依赖 ─────────────────────────────────────────────
+#   libusb        串口 / USB 设备（Feetech 臂、rustypot 手）
+#   libgl1/egl     OpenCV 图像处理
+#   libsdl2-*      pygame 标定 GUI
+#   fonts-noto-cjk 中文字体（缺了标定界面会显示方框）
+#   ffmpeg         视频编解码（录制 / 回放数据集）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git ffmpeg \
+        libusb-1.0-0 \
+        libgl1 libglib2.0-0 libegl1 \
+        libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libsdl2-ttf-2.0-0 \
+        fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── pip 国内源 ───────────────────────────────────────────
+RUN pip config set global.index-url ${PIP_INDEX}
+
+# ── PyTorch（CPU）────────────────────────────────────────
+# 先装 torch，后面装项目时 pip 就不会再拉 CUDA 版
+RUN pip install torch torchvision --index-url ${TORCH_INDEX}
+
+# ── 项目源码 ─────────────────────────────────────────────
+WORKDIR /opt/lerobot
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+COPY tutorials ./tutorials
+
+# amazinghand: rustypot / feetech / pygame 等硬件依赖
+# training:   accelerate / wandb / datasets 等训练依赖
+RUN pip install -e ".[amazinghand,training]"
+
+# 标定界面标定文件默认落在这里，运行时挂载出来可持久化
+VOLUME ["/root/.cache/huggingface"]
+
+CMD ["bash"]

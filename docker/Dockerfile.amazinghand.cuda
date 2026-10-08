@@ -1,0 +1,54 @@
+# SO-ARM101 + AmazingHand —— CUDA 版镜像
+#
+# 构建（在 Linux 上执行）:
+#   docker build -f docker/Dockerfile.amazinghand.cuda -t lerobot-amazinghand:cuda .
+#
+# 国内网络加速:
+#   docker build -f docker/Dockerfile.amazinghand.cuda \
+#     --build-arg BASE_IMAGE=docker.m.daocloud.io/library/python:3.12-slim \
+#     --build-arg TORCH_INDEX=https://mirrors.aliyun.com/pytorch-wheels/cu128 \
+#     -t lerobot-amazinghand:cuda .
+#
+# 运行（需要宿主机装好 NVIDIA 驱动 + nvidia-container-toolkit）:
+#   docker run -it --rm --gpus all lerobot-amazinghand:cuda
+
+ARG BASE_IMAGE=python:3.12-slim
+FROM ${BASE_IMAGE}
+
+ARG PIP_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple
+# CUDA 12.8（匹配 LeRobot 的 cu128 源）。国内可用:
+#   https://mirrors.aliyun.com/pytorch-wheels/cu128
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cu128
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    LANG=C.UTF-8
+
+# ── 系统依赖 ─────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git ffmpeg \
+        libusb-1.0-0 \
+        libgl1 libglib2.0-0 libegl1 \
+        libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libsdl2-ttf-2.0-0 \
+        fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── pip 国内源 ───────────────────────────────────────────
+RUN pip config set global.index-url ${PIP_INDEX}
+
+# ── PyTorch（CUDA 12.8）──────────────────────────────────
+# 注意：约 2.5 GB。CPU 机器请改用 Dockerfile.amazinghand.cpu
+RUN pip install torch torchvision --index-url ${TORCH_INDEX}
+
+# ── 项目源码 ─────────────────────────────────────────────
+WORKDIR /opt/lerobot
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+COPY tutorials ./tutorials
+
+RUN pip install -e ".[amazinghand,training]"
+
+VOLUME ["/root/.cache/huggingface"]
+
+CMD ["bash"]

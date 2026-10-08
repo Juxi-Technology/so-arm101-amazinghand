@@ -1,0 +1,41 @@
+# Copyright 2024 The HuggingFace Inc. team. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# ── 本项目调整 ───────────────────────────────────────────────
+# 原上游配置对本仓库的 .safetensors / .mp4 / .stl 等启用 Git LFS。
+# 本仓库已移除这些大文件（模型与数据集托管于 Hugging Face），残留的
+# LFS 文件仅 20 KB 测试夹具，用 LFS 反而增加克隆与推送的失败点，
+# 因此改为普通存储。
+
+# Shell 脚本强制 LF：避免在 Windows 检出后变成 CRLF，导致 Linux 下无法执行
+*.sh text eol=lf
+
+# 文本文件统一按 LF 存入仓库
+*.py   text eol=lf
+*.md   text eol=lf
+*.toml text eol=lf
+*.cfg  text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.txt  text eol=lf
+
+# 二进制文件不做任何行尾转换
+*.png        binary
+*.jpg        binary
+*.jpeg       binary
+*.webp       binary
+*.gif        binary
+*.mp4        binary
+*.safetensors binary

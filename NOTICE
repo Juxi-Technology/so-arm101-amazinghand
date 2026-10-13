@@ -1,0 +1,39 @@
+Juxi Technology
+Copyright 2026 Juxi Technology
+
+----------------------------------------------------------------------
+This repository redistributes the LeRobot project.
+
+  Upstream project  : https://github.com/huggingface/lerobot
+  Upstream author   : Copyright 2024 The HuggingFace Inc. team
+  Upstream license  : Apache License, Version 2.0 (see LICENSE)
+  Upstream version  : LeRobot 0.6.2
+
+The upstream revision is not pinned. This is a snapshot of the LeRobot
+0.6.2 line: upstream later appended a StarVLA notice to LICENSE, and this
+snapshot's LICENSE does not carry it.
+
+Modifications made by Juxi Technology, as required by Apache License 2.0,
+section 4(b):
+
+  1. tutorials/  (155 files)
+     Added. A six-part tutorial series (environment, calibration,
+     teleoperation, data collection, training, deployment) for the
+     SO-ARM101 + AmazingHand platform, in eleven languages.
+
+  2. docker/  (4 files)
+     Added: Dockerfile.amazinghand.cpu, Dockerfile.amazinghand.cuda,
+     README_DEPLOY.md and build_and_export.sh.
+
+  3. src/ (7 files) and tests/ (2 files)
+     Added: the AmazingHand integration and its tests.
+
+  4. Top-level additions
+     README.zh-CN.md, diagnose_feetech_bus.py, preview_cameras.py and
+     pack_for_customer.py.
+
+  5. README.md
+     Rewritten for the SO-ARM101 + AmazingHand platform.
+
+All upstream copyright, license and attribution notices are retained.
+----------------------------------------------------------------------
